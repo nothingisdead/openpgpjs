@@ -24,5 +24,5 @@ export * from './packet';
 export * from './encoding/armor';
 
 export { default as enums } from './enums';
-
+export { default as crypto } from './crypto';
 export { default as config } from './config/config';
