@@ -34,7 +34,7 @@ const Buffer = util.getNodeBuffer();
 
 const blockLength = 16;
 const ivLength = blockLength;
-const tagLength = blockLength;
+const defaultTagLength = blockLength;
 
 const zero = new Uint8Array(blockLength);
 const one = new Uint8Array(blockLength); one[blockLength - 1] = 1;
@@ -77,7 +77,7 @@ async function CTR(key) {
  * @param {enums.symmetric} cipher - The symmetric cipher algorithm to use
  * @param {Uint8Array} key - The encryption key
  */
-async function EAX(cipher, key) {
+async function EAX(cipher, key, tagLength = defaultTagLength) {
   if (cipher !== enums.symmetric.aes128 &&
     cipher !== enums.symmetric.aes192 &&
     cipher !== enums.symmetric.aes256) {
@@ -110,7 +110,7 @@ async function EAX(cipher, key) {
       ]);
       const ciphered = await ctr(plaintext, omacNonce);
       const omacCiphered = await omac(two, ciphered);
-      const tag = omacCiphered; // Assumes that omac(*).length === tagLength.
+      const tag = omacCiphered.subarray(0, tagLength);
       for (let i = 0; i < tagLength; i++) {
         tag[i] ^= omacAdata[i] ^ omacNonce[i];
       }
@@ -137,7 +137,7 @@ async function EAX(cipher, key) {
         omac(one, adata),
         omac(two, ciphered)
       ]);
-      const tag = omacCiphered; // Assumes that omac(*).length === tagLength.
+      const tag = omacCiphered.subarray(0, tagLength);
       for (let i = 0; i < tagLength; i++) {
         tag[i] ^= omacAdata[i] ^ omacNonce[i];
       }
@@ -164,6 +164,6 @@ EAX.getNonce = function(iv, chunkIndex) {
 
 EAX.blockLength = blockLength;
 EAX.ivLength = ivLength;
-EAX.tagLength = tagLength;
+EAX.tagLength = defaultTagLength;
 
 export default EAX;
